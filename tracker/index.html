@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Zenith Analytics - Mock Tracking Environment</title>
+  <meta name="description" content="A premium demo interface validating client-side event tracking, click logging, and session persistence.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    html {
+      scroll-behavior: smooth;
+    }
+    body {
+      background-color: #0b0f19;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+    header {
+      backdrop-filter: blur(12px);
+      background-color: rgba(11, 15, 25, 0.8);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+    .nav-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 80px;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.5px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 32px;
+    }
+    .nav-link {
+      color: #94a3b8;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      transition: color 0.2s ease;
+    }
+    .nav-link:hover {
+      color: #f8fafc;
+    }
+    .btn {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border: none;
+      color: white;
+      cursor: pointer;
+      display: inline-block;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 12px 24px;
+      border-radius: 8px;
+      text-decoration: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+    .btn:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #f8fafc;
+      margin-left: 12px;
+    }
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+    main {
+      padding-top: 140px;
+      padding-bottom: 80px;
+    }
+    .hero {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+    h1 {
+      font-size: 56px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1.5px;
+      margin-bottom: 24px;
+      background: linear-gradient(to right, #f8fafc, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      font-size: 20px;
+      color: #94a3b8;
+      max-width: 600px;
+      margin: 0 auto 36px auto;
+      font-weight: 400;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 32px;
+      margin-bottom: 60px;
+    }
+    .card {
+      background: rgba(30, 41, 59, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 16px;
+      padding: 32px;
+      transition: border-color 0.3s ease, transform 0.3s ease, background 0.3s ease;
+    }
+    .card:hover {
+      border-color: rgba(99, 102, 241, 0.4);
+      transform: translateY(-4px);
+      background: rgba(30, 41, 59, 0.5);
+    }
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.1));
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+    }
+    .card-icon svg {
+      width: 24px;
+      height: 24px;
+      stroke: #6366f1;
+    }
+    .card-title {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      color: #f8fafc;
+    }
+    .card-desc {
+      font-size: 15px;
+      color: #94a3b8;
+      line-height: 1.6;
+    }
+    .simulator-section {
+      background: radial-gradient(100% 100% at 0% 0%, rgba(99, 102, 241, 0.1) 0%, rgba(0, 0, 0, 0) 100%), rgba(30, 41, 59, 0.2);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 24px;
+      padding: 40px;
+      margin-top: 40px;
+      box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.2);
+    }
+    .simulator-title {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .simulator-desc {
+      color: #94a3b8;
+      font-size: 16px;
+      margin-bottom: 24px;
+    }
+    .log-panel {
+      background-color: #05070d;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      font-family: monospace;
+      padding: 24px;
+      height: 200px;
+      overflow-y: auto;
+      font-size: 13px;
+      color: #10b981;
+    }
+    .log-entry {
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+    .log-time {
+      color: #64748b;
+      margin-right: 16px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav-wrapper">
+        <div class="logo">Zenith.</div>
+        <nav class="nav-links">
+          <a href="#" class="nav-link" id="nav-home">Home</a>
+          <a href="#" class="nav-link" id="nav-features">Features</a>
+          <a href="#" class="nav-link" id="nav-pricing">Pricing</a>
+        </nav>
+        <button class="btn" id="nav-cta">Get Started</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero">
+      <h1>Automate Your Analytics<br>with Precision</h1>
+      <p class="subtitle">Deploy our lightweight tracking system, collect real-time data securely, and drive decisions with modern UX monitoring.</p>
+      <div>
+        <button class="btn" id="hero-primary-cta">Start Free Trial</button>
+        <button class="btn btn-secondary" id="hero-secondary-cta">Book a Demo</button>
+      </div>
+    </section>
+
+    <div class="features-grid">
+      <div class="card" id="card-realtime">
+        <div class="card-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        </div>
+        <h3 class="card-title">Real-time Auditing</h3>
+        <p class="card-desc">Instantly record customer behavior with sub-millisecond dispatch times and Zero-latency data pipelines.</p>
+      </div>
+      <div class="card" id="card-security">
+        <div class="card-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
+        </div>
+        <h3 class="card-title">Secure Isolation</h3>
+        <p class="card-desc">Strictly sandboxed tracking environment that respects visitor privacy and complies with data standards.</p>
+      </div>
+      <div class="card" id="card-predictive">
+        <div class="card-icon">
+          <svg fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
+        </div>
+        <h3 class="card-title">Predictive Insights</h3>
+        <p class="card-desc">Machine learning models analyzing user intent and patterns to predict potential conversion friction.</p>
+      </div>
+    </div>
+
+    <section class="simulator-section">
+      <h2 class="simulator-title">Live Event Simulator</h2>
+      <p class="simulator-desc">Click anywhere on the screen. The event listener in <code>tracker.js</code> will capture the click, resolve your session status, and log the action coordinates here in real-time.</p>
+      <div class="log-panel" id="log-panel"></div>
+    </section>
+  </main>
+
+  <script>
+    (() => {
+      const panel = document.getElementById('log-panel');
+      const addLog = (type, details) => {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        const timeSpan = document.createElement('span');
+        timeSpan.className = 'log-time';
+        timeSpan.textContent = new Date().toLocaleTimeString();
+        const contentSpan = document.createElement('span');
+        contentSpan.textContent = `[${type.toUpperCase()}] ${JSON.stringify(details)}`;
+        entry.appendChild(timeSpan);
+        entry.appendChild(contentSpan);
+        panel.appendChild(entry);
+        panel.scrollTop = panel.scrollHeight;
+      };
+
+      addLog('init', { status: 'initialized', sessionId: localStorage.getItem('tracking_session_id') });
+
+      window.addEventListener('click', (event) => {
+        addLog('click', { clientX: event.clientX, clientY: event.clientY });
+      });
+    })();
+  </script>
+  <script src="tracker.js" data-api-url="http://localhost:5000/api/events"></script>
+</body>
+</html>
