@@ -45,7 +45,7 @@ export default function Layout({ children }) {
           </div>
           <div className="flex items-center gap-4">
             <a
-              href="http://localhost:3000"
+              href={import.meta.env.VITE_TRACKER_URL || 'http://localhost:3000'}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs text-slate-500 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-3 py-1.5 rounded-md border border-slate-200 transition-all"
