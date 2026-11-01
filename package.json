@@ -1,10 +1,23 @@
 {
-  "name": "user-analytics-application",
-  "version": "1.0.0",
+  "name": "user-analytics-platform",
+  "version": "2.0.0",
   "private": true,
-  "workspaces": [
-    "backend",
-    "frontend",
-    "tracker"
-  ]
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "lucide-react": "^1.21.0",
+    "mongoose": "^9.7.1",
+    "next": "^15.3.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "postcss": "^8.5.3",
+    "tailwindcss": "^4.1.0"
+  }
 }
