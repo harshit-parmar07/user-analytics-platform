@@ -1,8 +1,8 @@
-import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { Event } from "@/models/Event";
+import { NextResponse } from 'next/server';
+import { connectToDatabase } from '@/lib/mongodb';
+import { Event } from '@/models/Event';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export async function GET(request, context) {
   try {
@@ -23,7 +23,9 @@ export async function GET(request, context) {
         yPct: 1,
         viewportWidth: 1,
         viewportHeight: 1,
-      },
+        targetSelector: 1,
+        clickCount: 1,
+      }
     )
       .sort({ timestamp: 1 })
       .limit(1000)

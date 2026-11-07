@@ -1,86 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Analytics Tracker Demo</title>
-    <style>
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-      }
-      body {
-        font-family:
-          system-ui,
-          -apple-system,
-          BlinkMacSystemFont,
-          "Segoe UI",
-          Roboto,
-          sans-serif;
-        padding: 20px;
-        box-sizing: border-box;
-        position: relative;
-      }
-      h1 {
-        margin-top: 0;
-        margin-bottom: 10px;
-      }
-      p {
-        margin-bottom: 20px;
-        color: #333;
-      }
-      .btn {
-        padding: 10px 20px;
-        font-size: 16px;
-        cursor: pointer;
-      }
-      .btn-top-left {
-        position: absolute;
-        top: 150px;
-        left: 20px;
-      }
-      .btn-top-right {
-        position: absolute;
-        top: 150px;
-        right: 20px;
-      }
-      .btn-center {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-      }
-      .btn-bottom-left {
-        position: absolute;
-        bottom: 20px;
-        left: 20px;
-      }
-      .btn-bottom-right {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>User Analytics Demo</h1>
-    <p>
-      This is a simplified demo page for tracking user actions. Use the buttons
-      below to generate heatmap event logs.
-    </p>
-    <button class="btn btn-top-left" id="btn-top-left">Top Left Button</button>
-    <button class="btn btn-top-right" id="btn-top-right">
-      Top Right Button
-    </button>
-    <button class="btn btn-center" id="btn-center">Center Button</button>
-    <button class="btn btn-bottom-left" id="btn-bottom-left">
-      Bottom Left Button
-    </button>
-    <button class="btn btn-bottom-right" id="btn-bottom-right">
-      Bottom Right Button
-    </button>
-    <script src="/tracker.js" data-api-url="/api/events"></script>
-  </body>
-</html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Analytics Tracker & Frustration Engine Demo</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      padding: 24px;
+      box-sizing: border-box;
+      position: relative;
+      background: #f8fafc;
+      color: #0f172a;
+    }
+    h1 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 24px;
+    }
+    p {
+      margin-top: 0;
+      margin-bottom: 16px;
+      color: #475569;
+      font-size: 14px;
+    }
+    .btn {
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: 1px solid #cbd5e1;
+      background: #ffffff;
+      color: #0f172a;
+      cursor: pointer;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+    .btn:hover {
+      background: #f1f5f9;
+    }
+    .btn-top-left {
+      position: absolute;
+      top: 140px;
+      left: 24px;
+    }
+    .btn-top-right {
+      position: absolute;
+      top: 140px;
+      right: 24px;
+    }
+    .frustration-lab {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 24px;
+      width: 360px;
+      text-align: center;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+    }
+    .frustration-lab h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      color: #0f172a;
+    }
+    .frustration-lab p {
+      font-size: 12px;
+      color: #64748b;
+      margin-bottom: 16px;
+    }
+    .broken-checkout-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      background: #ef4444;
+      color: #ffffff;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .dead-click-banner {
+      margin-top: 12px;
+      padding: 12px;
+      background: #fef3c7;
+      border: 1px dashed #f59e0b;
+      border-radius: 10px;
+      color: #92400e;
+      font-size: 13px;
+      font-weight: 600;
+      user-select: none;
+    }
+    .btn-bottom-left {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+    }
+    .btn-bottom-right {
+      position: absolute;
+      bottom: 24px;
+      right: 24px;
+    }
+    #feedback-toast {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #2563eb;
+      min-height: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>User Analytics & Frustration Detection Demo</h1>
+  <p>Click standard buttons or test the Frustration Detection Engine in the center card.</p>
 
+  <button class="btn btn-top-left" id="btn-top-left" onclick="document.getElementById('feedback-toast').textContent = 'Top Left clicked at ' + new Date().toLocaleTimeString()">Top Left Button</button>
+  <button class="btn btn-top-right" id="btn-top-right" onclick="document.getElementById('feedback-toast').textContent = 'Top Right clicked at ' + new Date().toLocaleTimeString()">Top Right Button</button>
+
+  <div class="frustration-lab" id="frustration-lab-card">
+    <h2>Frustration Detection Test Zone</h2>
+    <p>Test algorithmic detection of user friction:</p>
+    <button class="btn" id="btn-center" onclick="document.getElementById('feedback-toast').textContent = 'Working button clicked!'">Working Action Button</button>
+
+    <button
+      class="broken-checkout-btn"
+      id="btn-broken-checkout"
+      data-simulate-unresponsive="true"
+    >
+      Unresponsive Checkout (Rapid Click 3x for Rage Click)
+    </button>
+
+    <div class="dead-click-banner" id="promo-dead-banner">
+      Static Promo Badge (Click Once for Dead Click)
+    </div>
+
+    <div id="feedback-toast"></div>
+  </div>
+
+  <button class="btn btn-bottom-left" id="btn-bottom-left" onclick="document.getElementById('feedback-toast').textContent = 'Bottom Left clicked'">Bottom Left Button</button>
+  <button class="btn btn-bottom-right" id="btn-bottom-right" onclick="document.getElementById('feedback-toast').textContent = 'Bottom Right clicked'">Bottom Right Button</button>
+
+  <script src="/tracker.js" data-api-url="/api/events"></script>
+</body>
+</html>

@@ -1,23 +1,34 @@
-import { NextResponse } from "next/server";
-import { connectToDatabase } from "@/lib/mongodb";
-import { Session } from "@/models/Session";
-import { Event } from "@/models/Event";
+import { NextResponse } from 'next/server';
+import { connectToDatabase } from '@/lib/mongodb';
+import { Session } from '@/models/Session';
+import { Event } from '@/models/Event';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const frustratedOnly = searchParams.get('frustratedOnly') === 'true';
+
     await connectToDatabase();
 
-    // Self-healing check: backfill any legacy sessions created before denormalization
+    // Self-healing check for sessions missing frustration counters
     const hasLegacySessions = await Session.exists({
-      eventCount: { $exists: false },
+      $or: [
+        { eventCount: { $exists: false } },
+        { rageClickCount: { $exists: false } },
+      ],
     });
 
     if (hasLegacySessions) {
       const legacySessions = await Session.find(
-        { eventCount: { $exists: false } },
-        { sessionId: 1, createdAt: 1 },
+        {
+          $or: [
+            { eventCount: { $exists: false } },
+            { rageClickCount: { $exists: false } },
+          ],
+        },
+        { sessionId: 1, createdAt: 1 }
       ).lean();
 
       const legacyIds = legacySessions.map((s) => s.sessionId);
@@ -26,9 +37,15 @@ export async function GET() {
         { $match: { sessionId: { $in: legacyIds } } },
         {
           $group: {
-            _id: "$sessionId",
+            _id: '$sessionId',
             count: { $sum: 1 },
-            lastActiveAt: { $max: "$timestamp" },
+            rageCount: {
+              $sum: { $cond: [{ $eq: ['$eventType', 'rage_click'] }, 1, 0] },
+            },
+            deadCount: {
+              $sum: { $cond: [{ $eq: ['$eventType', 'dead_click'] }, 1, 0] },
+            },
+            lastActiveAt: { $max: '$timestamp' },
           },
         },
       ]);
@@ -37,12 +54,17 @@ export async function GET() {
 
       const bulkOps = legacySessions.map((legacy) => {
         const stat = statsMap.get(legacy.sessionId);
+        const rageClickCount = stat ? stat.rageCount : 0;
+        const deadClickCount = stat ? stat.deadCount : 0;
         return {
           updateOne: {
             filter: { sessionId: legacy.sessionId },
             update: {
               $set: {
                 eventCount: stat ? stat.count : 0,
+                rageClickCount,
+                deadClickCount,
+                isFrustrated: rageClickCount > 0 || deadClickCount > 0,
                 lastActiveAt: stat ? stat.lastActiveAt : legacy.createdAt,
               },
             },
@@ -55,17 +77,18 @@ export async function GET() {
       }
     }
 
-    // Fast indexed read using { lastActiveAt: -1, createdAt: -1 } without $lookup
-    const sessions = await Session.find(
-      {},
-      {
-        _id: 0,
-        sessionId: 1,
-        createdAt: 1,
-        lastActiveAt: 1,
-        eventCount: 1,
-      },
-    )
+    const filter = frustratedOnly ? { isFrustrated: true } : {};
+
+    const sessions = await Session.find(filter, {
+      _id: 0,
+      sessionId: 1,
+      createdAt: 1,
+      lastActiveAt: 1,
+      eventCount: 1,
+      rageClickCount: 1,
+      deadClickCount: 1,
+      isFrustrated: 1,
+    })
       .sort({ lastActiveAt: -1, createdAt: -1 })
       .limit(100)
       .lean();
