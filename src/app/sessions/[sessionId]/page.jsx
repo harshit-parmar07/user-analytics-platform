@@ -14,6 +14,8 @@ import {
   Flame,
   AlertTriangle,
   Code,
+  ShieldCheck,
+  Type,
 } from 'lucide-react';
 
 function getEventConfig(eventType) {
@@ -81,6 +83,12 @@ function TimelineEvent({ event, formatTime }) {
                   {event.clickCount} rapid clicks &lt;1s
                 </span>
               )}
+              {event.isRedacted && (
+                <span className="inline-flex items-center gap-1 text-[11px] font-sans font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
+                  <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                  PII Masked
+                </span>
+              )}
             </div>
             <h4 className="text-sm font-semibold text-slate-900 break-all mt-0.5">
               {event.url}
@@ -93,39 +101,57 @@ function TimelineEvent({ event, formatTime }) {
         </div>
 
         {!isPageView && event.x !== undefined && event.y !== undefined && (
-          <div className="mt-3 inline-flex flex-wrap items-center gap-3 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono text-slate-600">
-            <div>
-              <span className="text-emerald-600 font-bold">X:</span> {event.x}px
-              {event.xPct !== undefined && (
-                <span className="text-slate-400"> ({event.xPct}%)</span>
+          <div className="mt-3 space-y-2">
+            <div className="inline-flex flex-wrap items-center gap-3 bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-mono text-slate-600">
+              <div>
+                <span className="text-emerald-600 font-bold">X:</span> {event.x}px
+                {event.xPct !== undefined && (
+                  <span className="text-slate-400"> ({event.xPct}%)</span>
+                )}
+              </div>
+              <div className="h-3 w-px bg-slate-200"></div>
+              <div>
+                <span className="text-emerald-600 font-bold">Y:</span> {event.y}px
+                {event.yPct !== undefined && (
+                  <span className="text-slate-400"> ({event.yPct}%)</span>
+                )}
+              </div>
+              {event.viewportWidth && event.viewportHeight && (
+                <>
+                  <div className="h-3 w-px bg-slate-200"></div>
+                  <div className="flex items-center gap-1 text-slate-500">
+                    <Monitor className="h-3 w-3 text-slate-400" />
+                    <span>
+                      {event.viewportWidth}x{event.viewportHeight}
+                    </span>
+                  </div>
+                </>
               )}
             </div>
-            <div className="h-3 w-px bg-slate-200"></div>
-            <div>
-              <span className="text-emerald-600 font-bold">Y:</span> {event.y}px
-              {event.yPct !== undefined && (
-                <span className="text-slate-400"> ({event.yPct}%)</span>
-              )}
-            </div>
-            {event.targetSelector && (
-              <>
-                <div className="h-3 w-px bg-slate-200"></div>
-                <div className="flex items-center gap-1 text-slate-700">
-                  <Code className="h-3.5 w-3.5 text-blue-600" />
-                  <span>{event.targetSelector}</span>
-                </div>
-              </>
-            )}
-            {event.viewportWidth && event.viewportHeight && (
-              <>
-                <div className="h-3 w-px bg-slate-200"></div>
-                <div className="flex items-center gap-1 text-slate-500">
-                  <Monitor className="h-3 w-3 text-slate-400" />
-                  <span>
-                    {event.viewportWidth}x{event.viewportHeight}
-                  </span>
-                </div>
-              </>
+
+            {(event.targetSelector || event.targetText) && (
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-xs">
+                {event.targetSelector && (
+                  <div className="flex items-center gap-1.5 font-mono text-slate-700 break-all">
+                    <Code className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                    <span>{event.targetSelector}</span>
+                  </div>
+                )}
+                {event.targetText && (
+                  <div className="flex items-center gap-1.5 text-slate-600 sm:ml-auto font-sans">
+                    <Type className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                    <span
+                      className={
+                        event.isRedacted
+                          ? 'font-mono text-[11px] bg-amber-50 text-amber-800 border border-amber-200 px-1.5 py-0.5 rounded'
+                          : 'italic text-slate-700'
+                      }
+                    >
+                      &ldquo;{event.targetText}&rdquo;
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         )}
@@ -180,6 +206,7 @@ export default function SessionDetailPage() {
 
   const rageCount = events.filter((e) => e.eventType === 'rage_click').length;
   const deadCount = events.filter((e) => e.eventType === 'dead_click').length;
+  const redactedCount = events.filter((e) => e.isRedacted).length;
 
   return (
     <div className="space-y-6">
@@ -209,6 +236,12 @@ export default function SessionDetailPage() {
               <span className="inline-flex items-center gap-1 text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full">
                 <AlertTriangle className="h-3.5 w-3.5 text-amber-500" />
                 {deadCount} Dead {deadCount === 1 ? 'Click' : 'Clicks'}
+              </span>
+            )}
+            {redactedCount > 0 && (
+              <span className="inline-flex items-center gap-1 text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full">
+                <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" />
+                {redactedCount} PII Masked
               </span>
             )}
           </div>

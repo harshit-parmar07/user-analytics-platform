@@ -24,6 +24,9 @@ export async function GET(request, context) {
         viewportWidth: 1,
         viewportHeight: 1,
         targetSelector: 1,
+        targetTag: 1,
+        targetText: 1,
+        isRedacted: 1,
         clickCount: 1,
       }
     )

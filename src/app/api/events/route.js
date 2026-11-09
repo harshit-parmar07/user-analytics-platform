@@ -9,6 +9,34 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+const EMAIL_REGEX = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
+const CARD_REGEX = /\b(?:\d[ -]*?){13,19}\b/g;
+const PHONE_REGEX = /\b(?:\+?\d{1,3}[-.\s]?)?\(?\d{3}\)?[-.\s]?\d{3}[-.\s]?\d{4}\b/g;
+
+function sanitizeElementText(rawText, clientRedacted = false) {
+  if (!rawText || typeof rawText !== 'string') {
+    return { text: '', isRedacted: Boolean(clientRedacted) };
+  }
+
+  let isRedacted = Boolean(clientRedacted);
+  const scrubbed = rawText
+    .slice(0, 80)
+    .replace(EMAIL_REGEX, () => {
+      isRedacted = true;
+      return '[EMAIL_REDACTED]';
+    })
+    .replace(CARD_REGEX, () => {
+      isRedacted = true;
+      return '[CARD_REDACTED]';
+    })
+    .replace(PHONE_REGEX, () => {
+      isRedacted = true;
+      return '[PHONE_REDACTED]';
+    });
+
+  return { text: scrubbed, isRedacted };
+}
+
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: corsHeaders });
 }
@@ -27,9 +55,17 @@ export async function POST(request) {
       yPct,
       viewportWidth,
       viewportHeight,
-      targetSelector,
-      clickCount,
+      targetSelector: directTargetSelector,
+      selector,
+      targetTag,
+      targetText,
+      isRedacted,
+      clickCount: directClickCount,
+      rageClickCount,
     } = body;
+
+    const targetSelector = directTargetSelector || selector;
+    const clickCount = directClickCount || rageClickCount;
 
     if (!sessionId || !eventType || !url) {
       return NextResponse.json(
@@ -44,6 +80,8 @@ export async function POST(request) {
     const isRage = eventType === 'rage_click';
     const isDead = eventType === 'dead_click';
     const isFrustrationEvent = isRage || isDead;
+
+    const sanitized = sanitizeElementText(targetText, isRedacted);
 
     const sessionUpdate = {
       $setOnInsert: {
@@ -78,7 +116,10 @@ export async function POST(request) {
         yPct,
         viewportWidth,
         viewportHeight,
-        targetSelector,
+        targetSelector: targetSelector ? String(targetSelector).slice(0, 160) : undefined,
+        targetTag: targetTag ? String(targetTag).slice(0, 32) : undefined,
+        targetText: sanitized.text || undefined,
+        isRedacted: sanitized.isRedacted,
         clickCount,
       }),
     ]);

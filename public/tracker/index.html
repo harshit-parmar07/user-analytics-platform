@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Analytics Tracker & Frustration Engine Demo</title>
+  <title>Analytics Tracker, Frustration & Privacy Engine Demo</title>
   <style>
     html, body {
       height: 100%;
@@ -19,18 +19,18 @@
     }
     h1 {
       margin-top: 0;
-      margin-bottom: 8px;
-      font-size: 24px;
+      margin-bottom: 6px;
+      font-size: 22px;
     }
     p {
       margin-top: 0;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
       color: #475569;
-      font-size: 14px;
+      font-size: 13px;
     }
     .btn {
-      padding: 10px 18px;
-      font-size: 14px;
+      padding: 10px 16px;
+      font-size: 13px;
       font-weight: 600;
       border-radius: 8px;
       border: 1px solid #cbd5e1;
@@ -44,60 +44,94 @@
     }
     .btn-top-left {
       position: absolute;
-      top: 140px;
+      top: 110px;
       left: 24px;
     }
     .btn-top-right {
       position: absolute;
-      top: 140px;
+      top: 110px;
       right: 24px;
     }
     .frustration-lab {
       position: absolute;
-      top: 50%;
+      top: 52%;
       left: 50%;
       transform: translate(-50%, -50%);
       background: #ffffff;
       border: 1px solid #e2e8f0;
       border-radius: 16px;
-      padding: 24px;
-      width: 360px;
+      padding: 20px;
+      width: 400px;
       text-align: center;
       box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08);
     }
     .frustration-lab h2 {
-      margin: 0 0 8px;
-      font-size: 16px;
+      margin: 0 0 6px;
+      font-size: 15px;
       color: #0f172a;
     }
     .frustration-lab p {
       font-size: 12px;
       color: #64748b;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
     .broken-checkout-btn {
       display: block;
       width: 100%;
-      padding: 12px;
-      margin-top: 12px;
+      padding: 11px;
+      margin-top: 10px;
       background: #ef4444;
       color: #ffffff;
       border: none;
       border-radius: 10px;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 13px;
       cursor: pointer;
     }
     .dead-click-banner {
-      margin-top: 12px;
-      padding: 12px;
+      margin-top: 10px;
+      padding: 10px;
       background: #fef3c7;
       border: 1px dashed #f59e0b;
       border-radius: 10px;
       color: #92400e;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       user-select: none;
+    }
+    .privacy-box {
+      margin-top: 14px;
+      padding-top: 12px;
+      border-top: 1px solid #e2e8f0;
+      text-align: left;
+    }
+    .privacy-box label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: #334155;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+    }
+    .privacy-input {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 12px;
+      margin-bottom: 8px;
+    }
+    .pii-btn {
+      width: 100%;
+      padding: 9px 12px;
+      background: #0f172a;
+      color: #ffffff;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
     }
     .btn-bottom-left {
       position: absolute;
@@ -110,23 +144,24 @@
       right: 24px;
     }
     #feedback-toast {
-      margin-top: 8px;
+      margin-top: 10px;
       font-size: 12px;
       color: #2563eb;
       min-height: 18px;
+      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1>User Analytics & Frustration Detection Demo</h1>
-  <p>Click standard buttons or test the Frustration Detection Engine in the center card.</p>
+  <h1>User Analytics, Frustration &amp; Privacy-Safe DOM Tracker</h1>
+  <p>Test hierarchical CSS selector capture, Rage/Dead Click heuristics, and automatic PII redaction.</p>
 
   <button class="btn btn-top-left" id="btn-top-left" onclick="document.getElementById('feedback-toast').textContent = 'Top Left clicked at ' + new Date().toLocaleTimeString()">Top Left Button</button>
   <button class="btn btn-top-right" id="btn-top-right" onclick="document.getElementById('feedback-toast').textContent = 'Top Right clicked at ' + new Date().toLocaleTimeString()">Top Right Button</button>
 
   <div class="frustration-lab" id="frustration-lab-card">
-    <h2>Frustration Detection Test Zone</h2>
-    <p>Test algorithmic detection of user friction:</p>
+    <h2>Frustration &amp; Privacy Test Zone</h2>
+    <p>Interact with elements below to test telemetry &amp; PII scrubbing:</p>
     <button class="btn" id="btn-center" onclick="document.getElementById('feedback-toast').textContent = 'Working button clicked!'">Working Action Button</button>
 
     <button
@@ -137,8 +172,28 @@
       Unresponsive Checkout (Rapid Click 3x for Rage Click)
     </button>
 
-    <div class="dead-click-banner" id="promo-dead-banner">
+    <div class="dead-click-banner dead-badge" id="promo-dead-banner" data-dead-click="true">
       Static Promo Badge (Click Once for Dead Click)
+    </div>
+
+    <div class="privacy-box" id="privacy-test-zone">
+      <label for="secret-card-input">Zero-Trust PII Masking Test</label>
+      <input
+        id="secret-card-input"
+        type="password"
+        class="privacy-input"
+        placeholder="Click here: input values are auto-redacted"
+        value="4532-9999-8888-7777"
+        readonly
+      />
+      <button
+        type="button"
+        class="pii-btn"
+        id="btn-pii-email"
+        onclick="document.getElementById('feedback-toast').textContent = 'PII button clicked (email scrubbed in telemetry)'"
+      >
+        Send Receipt to harshit@example.com
+      </button>
     </div>
 
     <div id="feedback-toast"></div>

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   MapPin,
   Search,
@@ -11,6 +11,9 @@ import {
   Eye,
   EyeOff,
   AlertTriangle,
+  Code,
+  ShieldCheck,
+  XCircle,
 } from 'lucide-react';
 
 function resolveClickPosition(click, width, height) {
@@ -64,6 +67,7 @@ export default function HeatmapPage() {
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('both');
   const [eventFilter, setEventFilter] = useState('all');
+  const [selectedSelector, setSelectedSelector] = useState(null);
   const [showBackdrop, setShowBackdrop] = useState(true);
   const [radius, setRadius] = useState(40);
 
@@ -82,6 +86,7 @@ export default function HeatmapPage() {
       const data = await response.json();
       setClicks(data);
       setActiveUrl(targetUrl);
+      setSelectedSelector(null);
       setError(null);
     } catch (err) {
       setError(err.message);
@@ -100,12 +105,50 @@ export default function HeatmapPage() {
     fetchHeatmap(defaultUrl);
   }, []);
 
-  const filteredClicks = clicks.filter((c) => {
-    if (eventFilter === 'frustration') {
-      return c.eventType === 'rage_click' || c.eventType === 'dead_click';
-    }
-    return true;
-  });
+  const elementLeaderboard = useMemo(() => {
+    const map = new Map();
+    clicks.forEach((c) => {
+      const selector = c.targetSelector || 'unknown';
+      const existing = map.get(selector) || {
+        selector,
+        targetTag: c.targetTag || 'element',
+        targetText: c.targetText || '',
+        isRedacted: Boolean(c.isRedacted),
+        total: 0,
+        clicks: 0,
+        rage: 0,
+        dead: 0,
+      };
+      existing.total += 1;
+      if (c.eventType === 'rage_click') existing.rage += 1;
+      else if (c.eventType === 'dead_click') existing.dead += 1;
+      else existing.clicks += 1;
+
+      if (!existing.targetText && c.targetText) {
+        existing.targetText = c.targetText;
+      }
+      if (c.isRedacted) {
+        existing.isRedacted = true;
+      }
+      map.set(selector, existing);
+    });
+
+    return Array.from(map.values()).sort((a, b) => b.total - a.total);
+  }, [clicks]);
+
+  const filteredClicks = useMemo(() => {
+    return clicks.filter((c) => {
+      if (eventFilter === 'frustration') {
+        const isFrustration =
+          c.eventType === 'rage_click' || c.eventType === 'dead_click';
+        if (!isFrustration) return false;
+      }
+      if (selectedSelector && (c.targetSelector || 'unknown') !== selectedSelector) {
+        return false;
+      }
+      return true;
+    });
+  }, [clicks, eventFilter, selectedSelector]);
 
   const drawThermalCanvas = useCallback(() => {
     const canvas = canvasRef.current;
@@ -202,10 +245,10 @@ export default function HeatmapPage() {
       <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
         <div>
           <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
-            Click &amp; Frustration Heatmap
+            Click, Frustration &amp; DOM Selector Heatmap
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Visualize normalized click density and pinpoint Rage &amp; Dead Click hotspots.
+            Visualize normalized click density, Rage/Dead hotspots, and privacy-safe DOM element rankings.
           </p>
         </div>
 
@@ -333,15 +376,127 @@ export default function HeatmapPage() {
         </div>
       )}
 
+      {elementLeaderboard.length > 0 && (
+        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div>
+              <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                <Code className="h-4 w-4 text-blue-600" />
+                Top Clicked DOM Elements Leaderboard
+              </h2>
+              <p className="text-xs text-slate-500">
+                Click any row below to isolate that element&apos;s spatial coordinates on the heatmap.
+              </p>
+            </div>
+            {selectedSelector && (
+              <button
+                type="button"
+                onClick={() => setSelectedSelector(null)}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 hover:text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 cursor-pointer self-start sm:self-center"
+              >
+                <XCircle className="h-3.5 w-3.5" />
+                Clear Selector Filter
+              </button>
+            )}
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full border-collapse text-left text-xs">
+              <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider font-semibold border-b border-slate-200">
+                <tr>
+                  <th className="py-3 px-4">DOM Selector Path</th>
+                  <th className="py-3 px-4">Privacy-Safe Label</th>
+                  <th className="py-3 px-4 text-right">Clicks</th>
+                  <th className="py-3 px-4 text-right">Rage</th>
+                  <th className="py-3 px-4 text-right">Dead</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {elementLeaderboard.slice(0, 8).map((item) => {
+                  const isSelected = selectedSelector === item.selector;
+                  return (
+                    <tr
+                      key={item.selector}
+                      onClick={() =>
+                        setSelectedSelector((prev) =>
+                          prev === item.selector ? null : item.selector
+                        )
+                      }
+                      className={
+                        'cursor-pointer transition-colors ' +
+                        (isSelected
+                          ? 'bg-blue-50/80 hover:bg-blue-50'
+                          : 'hover:bg-slate-50')
+                      }
+                    >
+                      <td className="py-3 px-4 font-mono text-slate-800 break-all">
+                        <span className="font-semibold text-blue-600">
+                          {item.selector}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-2">
+                          {item.targetText ? (
+                            <span
+                              className={
+                                item.isRedacted
+                                  ? 'font-mono text-[11px] bg-amber-50 text-amber-800 border border-amber-200 px-2 py-0.5 rounded'
+                                  : 'text-slate-600 italic'
+                              }
+                            >
+                              &ldquo;{item.targetText}&rdquo;
+                            </span>
+                          ) : (
+                            <span className="text-slate-400">—</span>
+                          )}
+                          {item.isRedacted && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full">
+                              <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                              PII Masked
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono font-bold text-slate-800">
+                        {item.clicks}
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono">
+                        {item.rage > 0 ? (
+                          <span className="text-red-600 font-bold">{item.rage}</span>
+                        ) : (
+                          <span className="text-slate-400">0</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-right font-mono">
+                        {item.dead > 0 ? (
+                          <span className="text-amber-600 font-bold">{item.dead}</span>
+                        ) : (
+                          <span className="text-slate-400">0</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-4 text-xs text-slate-500 font-mono">
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-1.5">
               <MapPin className="h-4 w-4 text-blue-600" />
               <span>
                 Active URL: <span className="text-slate-900">{activeUrl || url}</span>
               </span>
             </div>
+            {selectedSelector && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200 font-mono font-semibold">
+                Isolated: {selectedSelector}
+              </span>
+            )}
             {rageTotal > 0 && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-700 border border-red-200 font-sans font-semibold">
                 <Flame className="h-3 w-3 text-red-500" />
@@ -446,10 +601,10 @@ export default function HeatmapPage() {
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 bg-slate-900/75 backdrop-blur-xs z-30">
               <LayoutTemplate className="h-12 w-12 text-slate-300 mb-3" />
               <p className="text-white text-sm font-semibold">
-                No matching signals for this URL
+                No matching signals for this filter
               </p>
               <p className="text-xs text-slate-300 mt-1 max-w-sm">
-                Open the Tracker Demo site and test the red Unresponsive Checkout button or static Promo Badge.
+                Open the Tracker Demo site and interact with the buttons or PII test inputs.
               </p>
             </div>
           )}

@@ -30,6 +30,9 @@ export async function GET(request) {
         xPct: 1,
         yPct: 1,
         targetSelector: 1,
+        targetTag: 1,
+        targetText: 1,
+        isRedacted: 1,
         clickCount: 1,
         _id: 0,
       }

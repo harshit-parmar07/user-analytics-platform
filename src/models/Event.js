@@ -42,12 +42,22 @@ const eventSchema = new mongoose.Schema({
   targetSelector: {
     type: String,
   },
+  targetTag: {
+    type: String,
+  },
+  targetText: {
+    type: String,
+  },
+  isRedacted: {
+    type: Boolean,
+    default: false,
+  },
   clickCount: {
     type: Number,
   },
 });
 
-// Compound index for heatmap queries including eventType and targetSelector
+// Compound index for heatmap queries and selector aggregation
 eventSchema.index({
   url: 1,
   eventType: 1,
